@@ -1,15 +1,100 @@
+import 'dart:convert';
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 const d_light_violet = Color(0xFF812EAD);
 const d_dark_violet = Color(0xFF501776);
+DateTime now = DateTime.now();
 
 
-void main() {
-  runApp(const MyApp());
+
+Future<Weather> fetchWeather() async {
+  final response = await http
+      .get(Uri.parse('https://api.openweathermap.org/data/2.5/weather?id=3014728&units=metric&appid=3ee1c88773481377978efa37566919aa'));
+
+  if (response.statusCode == 200) {
+    // If the server did return a 200 OK response,
+    // then parse the JSON.
+    return Weather.fromJson(jsonDecode(response.body));
+  } else {
+    // If the server did not return a 200 OK response,
+    // then throw an exception.
+    throw Exception('Failed to load weather');
+  }
+}
+class Temp{
+  double temp;
+
+  Temp({
+    required this.temp,
+  });
+
+  factory Temp.fromJson(Map<String, dynamic> json){
+    return Temp(
+        temp: json['temp']
+    );
+  }
 }
 
-class MyApp extends StatelessWidget {
+class Main {
+  Main({
+    required this.temp,
+    required this.humidity,
+  });
+
+  double temp;
+  int humidity;
+
+  factory Main.fromJson(Map<String, dynamic> json) => Main(
+    temp: json["temp"].toDouble(),
+    humidity: json["humidity"],
+  );
+
+  Map<String, dynamic> toJson() => {
+    "temp": temp,
+    "humidity": humidity,
+  };
+}
+
+class Weather {
+  final String city;
+  final Main main;
+
+  //final double wind;
+
+  Weather({
+    required this.city,
+    required this.main,
+    //required this.wind,
+  });
+
+  factory Weather.fromJson(Map<String, dynamic> json) {
+    return Weather(
+      city: json['name'],
+      main: Main.fromJson(json["main"]),
+      //wind: json['speed'],
+    );
+  }
+}
+void main() => runApp(const MyApp());
+
+class MyApp extends StatefulWidget {
   const MyApp({Key? key}) : super(key: key);
+
+
+  @override
+  _MyAppState createState() => _MyAppState();
+}
+class _MyAppState extends State<MyApp> {
+  late Future<Weather> futureWeather;
+
+  @override
+  void initState() {
+    super.initState();
+    futureWeather = fetchWeather();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,14 +104,21 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: const MyHomePage(),
+      home: MyHomePage(futureWeather:futureWeather),
     );
   }
 }
+class MyHomePage extends StatefulWidget {
+  var futureWeather;
 
-class MyHomePage extends StatelessWidget {
-  const MyHomePage({Key? key}) : super(key: key);
+  MyHomePage({Key? key, @required this.futureWeather}) : super(key: key);
 
+
+  @override
+  _MyHomePageState createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -42,18 +134,82 @@ class MyHomePage extends StatelessWidget {
                 ],
               )
           ),
-          child: const Center(
-            child: Text(
-              'Hello Gradient!',
-              style: TextStyle(
-                fontSize: 48.0,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
+          child: Center(
+            child: FutureBuilder<Weather>(
+              future: widget.futureWeather,
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  return ShowWeather(dataJ:snapshot.data!);
+                } else if (snapshot.hasError) {
+                  return Text('${snapshot.error}');
+                }
+
+                // By default, show a loading spinner.
+                return const CircularProgressIndicator();
+              },
             ),
           ),
         ),
       ),
     );
   }
+
+  @override
+  State<StatefulWidget> createState() {
+    // TODO: implement createState
+    throw UnimplementedError();
+  }
+}
+
+class ShowWeather extends StatefulWidget{
+  var dataJ;
+
+  ShowWeather({Key? key, @required this.dataJ}) : super(key: key);
+
+
+  @override
+  _ShowWeatherState createState() => _ShowWeatherState();
+
+}
+
+
+class _ShowWeatherState extends State<ShowWeather> {
+  var dayF = ['', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
+  var monthF = ['','Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      child:Column(
+        children: [
+          Container(
+            child:Text(
+                widget.dataJ.city,
+              style: TextStyle(
+                fontSize: 46.0,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+          ),
+          const SizedBox(height:10),
+          Container(
+            child:Text(
+              dayF[now.weekday].toString()+" "+now.day.toString()+" "+monthF[now.month]+" "+now.year.toString(),
+              style: TextStyle(
+                fontSize: 15.0,
+                color: Colors.grey,
+              ),
+            ),
+          ),
+          Container(
+            height: 300,
+            child:Text(widget.dataJ.main.humidity.toString()),
+          ),
+        ],
+      )
+    );
+    //return Text(widget.dataJ.main.humidity.toString());
+  }
+
 }
