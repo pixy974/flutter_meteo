@@ -24,19 +24,6 @@ Future<Weather> fetchWeather() async {
     throw Exception('Failed to load weather');
   }
 }
-class Temp{
-  double temp;
-
-  Temp({
-    required this.temp,
-  });
-
-  factory Temp.fromJson(Map<String, dynamic> json){
-    return Temp(
-        temp: json['temp']
-    );
-  }
-}
 
 class Main {
   Main({
