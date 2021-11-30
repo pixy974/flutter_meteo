@@ -5,7 +5,7 @@ const d_dark_violet = Color(0xFF501776);
 
 
 void main() {
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -19,7 +19,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: MyHomePage(),
+      home: const MyHomePage(),
     );
   }
 }
@@ -32,7 +32,7 @@ class MyHomePage extends StatelessWidget {
     return Scaffold(
       body: Center(
         child: Container(
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topRight,
                 end: Alignment.bottomLeft,
@@ -42,7 +42,7 @@ class MyHomePage extends StatelessWidget {
                 ],
               )
           ),
-          child: Center(
+          child: const Center(
             child: Text(
               'Hello Gradient!',
               style: TextStyle(
