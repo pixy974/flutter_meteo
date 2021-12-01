@@ -141,9 +141,9 @@ class _MyAppState extends State<MyApp> {
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
       home: MyHomePage(futureWeather:futureWeather),
+       //
     );
   }
-
 
 }
 class MyHomePage extends StatefulWidget {
@@ -154,11 +154,20 @@ class MyHomePage extends StatefulWidget {
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
+
 }
 
 class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
+
+    //timeout for refresh app
+    Future.delayed(const Duration(milliseconds: 60000), () {
+      setState(() {
+        updateUi();
+      });
+    });
+
     return Scaffold(
       body: Center(
         child: Container(
@@ -189,6 +198,13 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ),
       ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: Colors.orangeAccent,
+        onPressed: updateUi,
+        tooltip: 'Increment',
+        child: const Icon(Icons.autorenew, size: 40,),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 
@@ -197,7 +213,13 @@ class _MyHomePageState extends State<MyHomePage> {
     // TODO: implement createState
     throw UnimplementedError();
   }
+  void updateUi() {
+    setState(() {
+      widget.futureWeather = fetchWeather();
+    });
+  }
 }
+
 
 class ShowWeather extends StatefulWidget{
   var dataJ;
@@ -254,9 +276,10 @@ class _ShowWeatherState extends State<ShowWeather> {
             color:Colors.white.withOpacity(0.1),
             padding: EdgeInsets.fromLTRB(30, 25, 30, 25),
           child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 Container(
+                  width:90,
                   child: Column(
                       children: [
                         Text('Température',
@@ -268,17 +291,20 @@ class _ShowWeatherState extends State<ShowWeather> {
                   ),
                 ),
                 Container(
+                  width:90,
                   child: Column(
                       children: [
                         Text('Vent',
                           style: styleTitle(),),
                         const SizedBox(height:8),
-                        Text(widget.dataJ.wind.speed.truncate().toString()+' km/h',
+                        //*3.6 convert m/s to km/h
+                        Text((widget.dataJ.wind.speed*3.6).truncate().toString()+' km/h',
                             style:styleData()),
                       ]
                   ),
                 ),
                 Container(
+                  width:90,
                   child: Column(
                       children: [
                         Text('Humidité',
