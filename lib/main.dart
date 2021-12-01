@@ -208,11 +208,6 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  @override
-  State<StatefulWidget> createState() {
-    // TODO: implement createState
-    throw UnimplementedError();
-  }
   void updateUi() {
     setState(() {
       widget.futureWeather = fetchWeather();
@@ -245,7 +240,7 @@ class _ShowWeatherState extends State<ShowWeather> {
           Container(
             child:Text(
                 widget.dataJ.city,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 46.0,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
@@ -256,7 +251,7 @@ class _ShowWeatherState extends State<ShowWeather> {
           Container(
             child:Text(
               dayF[now.weekday].toString()+" "+now.day.toString()+" "+monthF[now.month]+" "+now.year.toString(),
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 15.0,
                 color: Colors.grey,
               ),
