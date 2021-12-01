@@ -8,7 +8,20 @@ const d_light_violet = Color(0xFF812EAD);
 const d_dark_violet = Color(0xFF501776);
 DateTime now = DateTime.now();
 
+//---------------------------style
+TextStyle styleTitle() {
+  return TextStyle(
+    color: Colors.white.withOpacity(0.55),
+  );
+}
 
+TextStyle styleData() {
+  return const TextStyle(
+    color: Colors.white,
+    fontSize: 22,
+    fontWeight: FontWeight.bold,
+  );
+}
 
 Future<Weather> fetchWeather() async {
   final response = await http
@@ -24,20 +37,7 @@ Future<Weather> fetchWeather() async {
     throw Exception('Failed to load weather');
   }
 }
-class Temp{
-  double temp;
-
-  Temp({
-    required this.temp,
-  });
-
-  factory Temp.fromJson(Map<String, dynamic> json){
-    return Temp(
-        temp: json['temp']
-    );
-  }
-}
-
+//-------------------------------------parse data json class
 class Main {
   Main({
     required this.temp,
@@ -58,23 +58,57 @@ class Main {
   };
 }
 
+class WeatherElement {
+  final String icon;
+
+  WeatherElement({
+    required this.icon,
+  });
+
+  factory WeatherElement.fromJson(Map<String, dynamic> json) => WeatherElement(
+    icon: json["icon"],
+  );
+
+}
+
+
+class Wind {
+  Wind({
+    required this.speed,
+  });
+
+  double speed;
+
+  factory Wind.fromJson(Map<String, dynamic> json) => Wind(
+    speed: json["speed"].toDouble(),
+  );
+
+  Map<String, dynamic> toJson() => {
+    "speed": speed,
+  };
+}
+
+
 class Weather {
   final String city;
   final Main main;
-
-  //final double wind;
+  final List<WeatherElement> weatherE;
+  final Wind wind;
 
   Weather({
     required this.city,
     required this.main,
-    //required this.wind,
+    required this.weatherE,
+    required this.wind,
+
   });
 
   factory Weather.fromJson(Map<String, dynamic> json) {
     return Weather(
       city: json['name'],
       main: Main.fromJson(json["main"]),
-      //wind: json['speed'],
+      weatherE: List<WeatherElement>.from(json["weather"].map((x) => WeatherElement.fromJson(x))),
+      wind: Wind.fromJson(json["wind"]),
     );
   }
 }
@@ -87,6 +121,8 @@ class MyApp extends StatefulWidget {
   @override
   _MyAppState createState() => _MyAppState();
 }
+//----------------------------------------------parse data json class
+
 class _MyAppState extends State<MyApp> {
   late Future<Weather> futureWeather;
 
@@ -107,6 +143,8 @@ class _MyAppState extends State<MyApp> {
       home: MyHomePage(futureWeather:futureWeather),
     );
   }
+
+
 }
 class MyHomePage extends StatefulWidget {
   var futureWeather;
@@ -203,13 +241,59 @@ class _ShowWeatherState extends State<ShowWeather> {
             ),
           ),
           Container(
-            height: 300,
-            child:Text(widget.dataJ.main.humidity.toString()),
+            height:200,
+            decoration: BoxDecoration(
+            image: DecorationImage(
+            image: AssetImage(
+              'assets/'+ widget.dataJ.weatherE[0].icon.toString() +'.png',
+            ),
+              fit: BoxFit.fitHeight,),
+            ),
           ),
+          Container(
+            color:Colors.white.withOpacity(0.1),
+            padding: EdgeInsets.fromLTRB(30, 25, 30, 25),
+          child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  child: Column(
+                      children: [
+                        Text('Température',
+                        style: styleTitle(),),
+                        const SizedBox(height:8),
+                        Text(widget.dataJ.main.temp.truncate().toString()+"°",
+                            style:styleData() ),
+                      ]
+                  ),
+                ),
+                Container(
+                  child: Column(
+                      children: [
+                        Text('Vent',
+                          style: styleTitle(),),
+                        const SizedBox(height:8),
+                        Text(widget.dataJ.wind.speed.truncate().toString()+' km/h',
+                            style:styleData()),
+                      ]
+                  ),
+                ),
+                Container(
+                  child: Column(
+                      children: [
+                        Text('Humidité',
+                          style: styleTitle(),),
+                        const SizedBox(height:8),
+                        Text(widget.dataJ.main.humidity.toString()+'%',
+                          style:styleData()),
+                      ]
+                  ),
+                ),
+              ]
+          ),),
         ],
       )
     );
     //return Text(widget.dataJ.main.humidity.toString());
   }
-
 }
